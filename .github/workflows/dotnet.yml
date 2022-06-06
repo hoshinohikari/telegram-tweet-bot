@@ -24,7 +24,7 @@ jobs:
     - name: Build
       run: |
         cd Twitter-Bot/Twitter-Bot
-        dotnet build --no-restore
+        dotnet build -p:PublishSingleFile=true --self-contained false -c Release
     - name: Test
       run: |
         cd Twitter-Bot/Twitter-Bot
