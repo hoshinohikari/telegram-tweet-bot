@@ -21,8 +21,11 @@ jobs:
       uses: actions/setup-dotnet@v2
       with: 
         dotnet-version: ${{ matrix.dotnet-version }}
-        path: ./Twitter-Bot
     - name: Build
-      run: dotnet build --no-restore
+      run: |
+        cd Twitter-Bot/Twitter-Bot
+        dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: |
+        cd Twitter-Bot/Twitter-Bot
+        dotnet test --no-build --verbosity normal
