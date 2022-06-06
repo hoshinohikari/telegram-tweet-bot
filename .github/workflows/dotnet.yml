@@ -45,16 +45,19 @@ jobs:
         mv Twitter-Bot/Twitter-Bot/bin/Release/net6.0 tw-bot-macOS-latest
         tar czvf tw-bot-macOS-latest.tar.gz tw-bot-macOS-latest
     - name: Deploy | Upload Windows
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v2
       with:
         name: tw-bot-windows-latest.zip
         path: tw-bot-windows-latest.zip
     - name: Deploy | Upload Linux
+      if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v2
       with:
         name: tw-bot-ubuntu-latest.tar.gz
         path: tw-bot-ubuntu-latest.tar.gz
     - name: Deploy | Upload macOS
+      if: matrix.os == 'macOS-latest'
       uses: actions/upload-artifact@v2
       with:
         name: tw-bot-macOS-latest.tar.gz

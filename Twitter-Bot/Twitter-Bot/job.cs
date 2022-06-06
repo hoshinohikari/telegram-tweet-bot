@@ -46,16 +46,32 @@ public static class Job
             if (tweetList.Count > 0)
             {
                 foreach (var subTweet in tweetList)
-                    foreach (var chat in user.ChatId)
-                    {
-                        var t = _bot!.SendTextAsync(
-                            @$"
+                foreach (var chat in user.ChatId)
+                {
+                    var tweetText = @$"
 *{subTweet.Name}* ([@{subTweet.ScreenName}](https://twitter.com/{subTweet.ScreenName})) at {subTweet.CreatedAt}:
 {subTweet.Text}
 -- [Link to this Tweet](https://twitter.com/{subTweet.ScreenName}/status/{subTweet.TwId})
-", chat);
+";
+                    if (subTweet.MediaList.Count == 0)
+                    {
+                        var t = _bot!.SendTextAsync(tweetText, chat);
                         sendJobs.Add(t);
                     }
+                    else
+                    {
+                        if (subTweet.Type == Tweet.TweetList.MediaType.Photo)
+                        {
+                            var t = _bot!.SendPhotoGroupAsync(subTweet.MediaList, tweetText, chat);
+                            sendJobs.Add(t);
+                        }
+                        else if (subTweet.Type == Tweet.TweetList.MediaType.Video)
+                        {
+                            var t = _bot!.SendVideoGroupAsync(subTweet.MediaList, tweetText, chat);
+                            sendJobs.Add(t);
+                        }
+                    }
+                }
 
                 _sql.UpdateLastTweet(user.Id, tweetList[0].TwId);
             }

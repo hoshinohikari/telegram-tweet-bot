@@ -53,13 +53,11 @@ public class Tweet
             var page = await userTimeline.NextPageAsync();
             timelineTweets.AddRange(page);
             List<string> mediaList = new();
-            /*foreach (var timelineMedia in timelineTweets[0].Media)
-            {
+            foreach (var timelineMedia in timelineTweets[0].Media)
                 if (timelineMedia.MediaType == "photo")
-                    MediaList.Add(timelineMedia.MediaURLHttps);
+                    mediaList.Add(timelineMedia.MediaURLHttps);
                 else
-                    MediaList.Add(timelineMedia.MediaURLHttps);
-            }*/
+                    mediaList.Add(timelineMedia.MediaURLHttps);
             twlist.Add(new TweetList
             {
                 Name = name,
@@ -67,7 +65,10 @@ public class Tweet
                 CreatedAt = timelineTweets[0].CreatedAt,
                 Text = timelineTweets[0].FullText,
                 TwId = timelineTweets[0].Id,
-                MediaList = mediaList
+                MediaList = mediaList,
+                Type = timelineTweets[0].Media.Count == 0 ? TweetList.MediaType.None :
+                    timelineTweets[0].Media[0].MediaType == "photo" ? TweetList.MediaType.Photo :
+                    TweetList.MediaType.Video
             });
         }
         else
@@ -92,6 +93,25 @@ public class Tweet
                 foreach (var timelineTweet in timelineTweets)
                 {
                     List<string> mediaList = new();
+                    foreach (var timelineMedia in timelineTweet.Media)
+                        if (timelineMedia.MediaType == "photo")
+                        {
+                            mediaList.Add(timelineMedia.MediaURLHttps);
+                        }
+                        else
+                        {
+                            var videoUrl = "";
+                            var max = 0;
+                            foreach (var v in timelineMedia.VideoDetails.Variants)
+                                if (v.Bitrate > max)
+                                {
+                                    max = v.Bitrate;
+                                    videoUrl = v.URL;
+                                }
+
+                            mediaList.Add(videoUrl);
+                        }
+
                     twlist.Add(new TweetList
                     {
                         Name = name,
@@ -99,7 +119,10 @@ public class Tweet
                         CreatedAt = timelineTweet.CreatedAt,
                         Text = timelineTweet.FullText,
                         TwId = timelineTweet.Id,
-                        MediaList = mediaList
+                        MediaList = mediaList,
+                        Type = timelineTweet.Media.Count == 0 ? TweetList.MediaType.None :
+                            timelineTweet.Media[0].MediaType == "photo" ? TweetList.MediaType.Photo :
+                            TweetList.MediaType.Video
                     });
                 }
             }
@@ -110,12 +133,20 @@ public class Tweet
 
     public struct TweetList
     {
+        public enum MediaType
+        {
+            None,
+            Photo,
+            Video
+        }
+
         public string? Name = null;
         public string? ScreenName = null;
         public DateTimeOffset CreatedAt = default;
         public string? Text = null;
         public long? TwId = 0;
         public List<string> MediaList = new();
+        public MediaType Type = MediaType.Photo;
 
         public TweetList()
         {

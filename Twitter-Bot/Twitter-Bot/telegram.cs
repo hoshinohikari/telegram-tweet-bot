@@ -9,12 +9,13 @@ namespace Twitter_Bot;
 public class TelegramBot
 {
     private readonly TelegramBotClient? _bot;
+    private readonly CancellationTokenSource _cts = new();
 
     public TelegramBot(string? token)
     {
         _bot = new TelegramBotClient(token!);
 
-        using var cts = new CancellationTokenSource();
+        //using var cts = new CancellationTokenSource();
 
         // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
         var receiverOptions = new ReceiverOptions
@@ -22,7 +23,7 @@ public class TelegramBot
             AllowedUpdates = Array.Empty<UpdateType>() // receive all update types
         };
 
-        _bot.StartReceiving(HandleUpdateAsync, HandlePollingErrorAsync, receiverOptions, cts.Token);
+        _bot.StartReceiving(HandleUpdateAsync, HandlePollingErrorAsync, receiverOptions, _cts.Token);
     }
 
     private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception,
@@ -83,7 +84,27 @@ public class TelegramBot
 
     public async Task SendTextAsync(string text, long id)
     {
-        await _bot!.SendTextMessageAsync(id, text, ParseMode.Markdown);
+        await _bot!.SendTextMessageAsync(id, text, ParseMode.Markdown, cancellationToken: _cts.Token);
+    }
+
+    public async Task SendPhotoGroupAsync(List<string> mediaList, string caption, long id)
+    {
+        var inputMedia = new List<IAlbumInputMedia>();
+        inputMedia.AddRange(mediaList.Select((t, i) => i == 0
+            ? new InputMediaPhoto(t) { Caption = caption, ParseMode = ParseMode.Markdown }
+            : new InputMediaPhoto(t)));
+
+        await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
+    }
+
+    public async Task SendVideoGroupAsync(List<string> mediaList, string caption, long id)
+    {
+        var inputMedia = new List<IAlbumInputMedia>();
+        inputMedia.AddRange(mediaList.Select((t, i) => i == 0
+            ? new InputMediaVideo(t) { Caption = caption, ParseMode = ParseMode.Markdown }
+            : new InputMediaVideo(t)));
+
+        await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
     }
 
     /*public async Task test()
