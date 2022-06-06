@@ -25,7 +25,42 @@ jobs:
       run: |
         cd Twitter-Bot/Twitter-Bot
         dotnet build -p:PublishSingleFile=true --self-contained false -c Release
+        cd -
     - name: Test
       run: |
         cd Twitter-Bot/Twitter-Bot
         dotnet test --no-build --verbosity normal
+        cd -
+    - name: Deploy | Upload Windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        mv Twitter-Bot/Twitter-Bot/bin/Release/net6.0 tw-bot-windows-latest
+        7z a tw-bot-windows-latest.zip tw-bot-windows-latest
+        cd -
+    - name: Deploy | Upload Linux
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        mv Twitter-Bot/Twitter-Bot/bin/Release/net6.0 tw-bot-ubuntu-latest
+        tar czvf tw-bot-ubuntu-latest.tar.gz tw-bot-ubuntu-latest
+        cd -
+    - name: Deploy | Upload macOS
+      if: matrix.os == 'macOS-latest'
+      run: |
+        mv Twitter-Bot/Twitter-Bot/bin/Release/net6.0 tw-bot-macOS-latest
+        tar czvf tw-bot-macOS-latest.tar.gz tw-bot-macOS-latest
+        cd -
+    - name: Deploy | Upload Windows
+      uses: actions/upload-artifact@v2
+      with:
+        name: tw-bot-windows-latest.zip
+        path: tw-bot-windows-latest.zip
+    - name: Deploy | Upload Linux
+      uses: actions/upload-artifact@v2
+      with:
+        name: tw-bot-ubuntu-latest.tar.gz
+        path: tw-bot-ubuntu-latest.tar.gz
+    - name: Deploy | Upload macOS
+      uses: actions/upload-artifact@v2
+      with:
+        name: tw-bot-macOS-latest.tar.gz
+        path: tw-bot-macOS-latest.tar.gz
