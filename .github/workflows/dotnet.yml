@@ -21,6 +21,7 @@ jobs:
       uses: actions/setup-dotnet@v2
       with: 
         dotnet-version: ${{ matrix.dotnet-version }}
+        path: ./Twitter-Bot
     - name: Build
       run: dotnet build --no-restore
     - name: Test
