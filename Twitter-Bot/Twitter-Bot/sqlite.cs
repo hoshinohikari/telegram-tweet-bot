@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS subscription(
 	""tw_user_id""      INTEGER NOT NULL,
 	""last_tweet_id""   INTEGER NOT NULL,
 	""sub_kind""        TEXT NOT NULL,
+    ""sub_timezone""    TEXT NOT NULL,
 	PRIMARY             KEY(""id"")
 );
 ";
@@ -73,7 +74,7 @@ CREATE TABLE IF NOT EXISTS subscription(
                 }
             }
 
-            command.CommandText = @$"INSERT INTO subscription VALUES ({maxId + 1}, '{chatId}', {sub}, 0, '0' );";
+            command.CommandText = @$"INSERT INTO subscription VALUES ({maxId + 1}, '{chatId}', {sub}, 0, '0', '' );";
             command.ExecuteNonQuery();
         }
         else

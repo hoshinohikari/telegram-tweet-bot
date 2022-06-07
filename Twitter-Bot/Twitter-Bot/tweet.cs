@@ -58,11 +58,14 @@ public class Tweet
                     mediaList.Add(timelineMedia.MediaURLHttps);
                 else
                     mediaList.Add(timelineMedia.MediaURLHttps);
+
+            var tst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+            var thisTime = TimeZoneInfo.ConvertTime(timelineTweets[0].CreatedAt.DateTime, TimeZoneInfo.Utc, tst);
             twlist.Add(new TweetList
             {
                 Name = name,
                 ScreenName = screenName,
-                CreatedAt = timelineTweets[0].CreatedAt,
+                CreatedAt = thisTime,
                 Text = timelineTweets[0].FullText,
                 TwId = timelineTweets[0].Id,
                 MediaList = mediaList,
@@ -112,11 +115,13 @@ public class Tweet
                             mediaList.Add(videoUrl);
                         }
 
+                    var tst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+                    var thisTime = TimeZoneInfo.ConvertTime(timelineTweet.CreatedAt.DateTime, TimeZoneInfo.Utc, tst);
                     twlist.Add(new TweetList
                     {
                         Name = name,
                         ScreenName = screenName,
-                        CreatedAt = timelineTweet.CreatedAt,
+                        CreatedAt = thisTime,
                         Text = timelineTweet.FullText,
                         TwId = timelineTweet.Id,
                         MediaList = mediaList,

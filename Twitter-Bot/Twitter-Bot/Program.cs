@@ -54,7 +54,7 @@ await Job.GetTweetAsync();
 
 while (running)
 {
-    await Task.Delay(10000);
+    await Task.Delay(60000);
 
     await Job.GetTweetAsync();
 }
