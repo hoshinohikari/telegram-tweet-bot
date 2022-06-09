@@ -15,8 +15,6 @@ public class TelegramBot
     {
         _bot = new TelegramBotClient(token!);
 
-        //using var cts = new CancellationTokenSource();
-
         // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
         var receiverOptions = new ReceiverOptions
         {
@@ -55,16 +53,26 @@ public class TelegramBot
         if (update.Message.Text!.Length <= 1 || update.Message.Text[0] != '/')
             return;
 
-        if (update.Message.Text.IndexOf(' ') == -1)
+        if (!update.Message.Text.Contains(' '))
         {
-            switch (update.Message.Text.Substring(1, update.Message.Text.Length - 1))
+            switch (update.Message.Text[1..])
             {
                 case "sub":
+                case "unsub":
                     await _bot!.SendTextMessageAsync(update.Message.Chat.Id, "No subscribed object!!!",
                         cancellationToken: cancellationToken);
                     break;
                 case "help":
-                    await _bot!.SendTextMessageAsync(update.Message.Chat.Id, "It doesn't help now!!!",
+                    await _bot!.SendTextMessageAsync(update.Message.Chat.Id, @"- /sub - subscribes to updates from users
+- /unsub - unsubscribes from users
+- /sublist - get a list of subscribed users
+- /help - view help text
+", parseMode: ParseMode.Markdown,
+                        cancellationToken: cancellationToken);
+                    break;
+                case "sublist":
+                    var user = await Job.GetSubListAsync();
+                    await _bot!.SendTextMessageAsync(update.Message.Chat.Id, user, parseMode: ParseMode.Markdown,
                         cancellationToken: cancellationToken);
                     break;
             }
@@ -72,12 +80,13 @@ public class TelegramBot
             return;
         }
 
-        switch (update.Message.Text.Substring(1, update.Message.Text.IndexOf(' ') - 1))
+        switch (update.Message.Text[1..update.Message.Text.IndexOf(' ')])
         {
             case "sub":
-                //Console.WriteLine(update.Message.Text.Substring(5, update.Message.Text.Length - 5));
-                await Job.AddSubAsync(update.Message.Text.Substring(5, update.Message.Text.Length - 5),
-                    update.Message.Chat.Id);
+                await Job.AddSubAsync(update.Message.Text[5..], update.Message.Chat.Id);
+                break;
+            case "unsub":
+                await Job.DelSubAsync(update.Message.Text[7..], update.Message.Chat.Id);
                 break;
         }
     }

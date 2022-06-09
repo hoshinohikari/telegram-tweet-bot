@@ -28,7 +28,26 @@ public static class Job
             }
 
             addJobs.Add(_sql!.AddSubAsync(id, chatId));
-            Console.WriteLine(id);
+        }
+
+        foreach (var addJob in addJobs) await addJob;
+    }
+
+    public static async Task DelSubAsync(string subList, long chatId)
+    {
+        var subs = subList.Split(' ');
+        List<Task> addJobs = new();
+
+        foreach (var sub in subs)
+        {
+            var id = await _tw!.GetUserId(sub);
+            if (id == 0)
+            {
+                addJobs.Add(_bot!.SendTextAsync($"User {sub} does not exist", chatId));
+                continue;
+            }
+
+            addJobs.Add(_sql!.delSubAsync(id, chatId));
         }
 
         foreach (var addJob in addJobs) await addJob;
@@ -78,5 +97,20 @@ public static class Job
         }
 
         foreach (var sendJob in sendJobs) await sendJob;
+    }
+
+    public static async Task<string> GetSubListAsync()
+    {
+        var subListText = "sub list:";
+        var subList = await _sql!.GetSubListAsync();
+
+        foreach (var user in subList)
+        {
+            subListText += "\n";
+            var userList = await _tw!.GetUserListAsync(user.Id);
+            subListText += $"*{userList.Name}* ([@{userList.ScreenName}](https://twitter.com/{userList.ScreenName}))";
+        }
+
+        return subListText;
     }
 }

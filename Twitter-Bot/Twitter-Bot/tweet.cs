@@ -136,6 +136,17 @@ public class Tweet
         return twlist;
     }
 
+    public async Task<UserList> GetUserListAsync(long id)
+    {
+        UserList userList;
+
+        var user = await _app.Users.GetUserAsync(id);
+        userList.Name = user.Name;
+        userList.ScreenName = user.ScreenName;
+
+        return userList;
+    }
+
     public struct TweetList
     {
         public enum MediaType
@@ -156,6 +167,12 @@ public class Tweet
         public TweetList()
         {
         }
+    }
+
+    public struct UserList
+    {
+        public string Name;
+        public string ScreenName;
     }
 
     /*public async Task test()

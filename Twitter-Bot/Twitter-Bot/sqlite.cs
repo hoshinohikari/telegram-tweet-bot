@@ -41,6 +41,19 @@ CREATE TABLE IF NOT EXISTS subscription(
         return outLongs;
     }
 
+    string LongList2String(List<long> ll)
+    {
+        var s = "";
+        for (int i = 0; i < ll.Count; i++)
+        {
+            if (i != 0)
+                s += ",";
+            s += ll[i].ToString();
+        }
+
+        return s;
+    }
+
     public async Task AddSubAsync(long sub, long chatId)
     {
         var isExist = false;
@@ -85,6 +98,49 @@ CREATE TABLE IF NOT EXISTS subscription(
             command.CommandText =
                 @$"UPDATE subscription SET tg_chat_id = '{chats},{chatId}', sub_kind = '{subKinds},0' WHERE tw_user_id = {sub};";
             command.ExecuteNonQuery();
+        }
+    }
+
+    public async Task delSubAsync(long sub, long chatId)
+    {
+        var isExist = false;
+        var command = _sql.CreateCommand();
+        command.CommandText = @$"SELECT * FROM subscription WHERE tw_user_id = {sub};";
+        var chats = "";
+        var subKinds = "";
+        await using (var reader = await command.ExecuteReaderAsync())
+        {
+            while (reader.Read())
+            {
+                chats = reader.GetString(1);
+                subKinds = reader.GetString(4);
+                Console.WriteLine($"Hello, {chats}, {subKinds}!");
+                isExist = true;
+            }
+        }
+        
+        if (!isExist)
+            return;
+
+        var chatList = SplitString2LongList(chats);
+        var chatIndex = chatList.IndexOf(chatId);
+        var subKindList = SplitString2LongList(subKinds);
+
+        if (chatIndex != -1)
+        {
+            if (chatList.Count == 1)
+            {
+                command.CommandText = @$"DELETE FROM subscription WHERE tw_user_id = {sub};";
+                command.ExecuteNonQuery();
+            }
+            else
+            {
+                chatList.RemoveAt(chatIndex);
+                subKindList.RemoveAt(chatIndex);
+                command.CommandText =
+                    @$"UPDATE subscription SET tg_chat_id = '{LongList2String(chatList)}', sub_kind = '{LongList2String(subKindList)}' WHERE tw_user_id = {sub};";
+                command.ExecuteNonQuery();
+            }
         }
     }
 
