@@ -88,48 +88,46 @@ public class Tweet
                 timelineTweets.AddRange(page);
             }
 
-            if (timelineTweets.Count > 0)
+            if (timelineTweets.Count <= 0) return twlist;
+            var user = await _app.Users.GetUserAsync(id);
+            name = user.Name;
+            screenName = user.ScreenName;
+            foreach (var timelineTweet in timelineTweets)
             {
-                var user = await _app.Users.GetUserAsync(id);
-                name = user.Name;
-                screenName = user.ScreenName;
-                foreach (var timelineTweet in timelineTweets)
-                {
-                    List<string> mediaList = new();
-                    foreach (var timelineMedia in timelineTweet.Media)
-                        if (timelineMedia.MediaType == "photo")
-                        {
-                            mediaList.Add(timelineMedia.MediaURLHttps);
-                        }
-                        else
-                        {
-                            var videoUrl = "";
-                            var max = 0;
-                            foreach (var v in timelineMedia.VideoDetails.Variants)
-                                if (v.Bitrate > max)
-                                {
-                                    max = v.Bitrate;
-                                    videoUrl = v.URL;
-                                }
-
-                            mediaList.Add(videoUrl);
-                        }
-
-                    var tst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
-                    var thisTime = TimeZoneInfo.ConvertTime(timelineTweet.CreatedAt.DateTime, TimeZoneInfo.Utc, tst);
-                    twlist.Add(new TweetList
+                List<string> mediaList = new();
+                foreach (var timelineMedia in timelineTweet.Media)
+                    if (timelineMedia.MediaType == "photo")
                     {
-                        Name = name,
-                        ScreenName = screenName,
-                        CreatedAt = thisTime,
-                        Text = timelineTweet.FullText,
-                        TwId = timelineTweet.Id,
-                        MediaList = mediaList,
-                        Type = timelineTweet.Media.Count == 0 ? TweetList.MediaType.None :
-                            timelineTweet.Media[0].MediaType == "photo" ? TweetList.MediaType.Photo :
-                            TweetList.MediaType.Video
-                    });
-                }
+                        mediaList.Add(timelineMedia.MediaURLHttps);
+                    }
+                    else
+                    {
+                        var videoUrl = "";
+                        var max = 0;
+                        foreach (var v in timelineMedia.VideoDetails.Variants)
+                            if (v.Bitrate > max)
+                            {
+                                max = v.Bitrate;
+                                videoUrl = v.URL;
+                            }
+
+                        mediaList.Add(videoUrl);
+                    }
+
+                var tst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+                var thisTime = TimeZoneInfo.ConvertTime(timelineTweet.CreatedAt.DateTime, TimeZoneInfo.Utc, tst);
+                twlist.Add(new TweetList
+                {
+                    Name = name,
+                    ScreenName = screenName,
+                    CreatedAt = thisTime,
+                    Text = timelineTweet.FullText,
+                    TwId = timelineTweet.Id,
+                    MediaList = mediaList,
+                    Type = timelineTweet.Media.Count == 0 ? TweetList.MediaType.None :
+                        timelineTweet.Media[0].MediaType == "photo" ? TweetList.MediaType.Photo :
+                        TweetList.MediaType.Video
+                });
             }
         }
 
@@ -158,7 +156,7 @@ public class Tweet
 
         public string? Name = null;
         public string? ScreenName = null;
-        public DateTimeOffset CreatedAt = default;
+        public DateTime CreatedAt = default;
         public string? Text = null;
         public long? TwId = 0;
         public List<string> MediaList = new();

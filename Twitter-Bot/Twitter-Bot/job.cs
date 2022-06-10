@@ -47,7 +47,7 @@ public static class Job
                 continue;
             }
 
-            addJobs.Add(_sql!.delSubAsync(id, chatId));
+            addJobs.Add(_sql!.DelSubAsync(id, chatId));
         }
 
         foreach (var addJob in addJobs) await addJob;
@@ -62,38 +62,45 @@ public static class Job
         foreach (var user in subList)
         {
             var tweetList = await _tw!.GetTweetAsync(user.Id, user.Sinceid);
-            if (tweetList.Count > 0)
+            if (tweetList.Count <= 0) continue;
+            foreach (var subTweet in tweetList)
+            foreach (var chat in user.ChatId)
             {
-                foreach (var subTweet in tweetList)
-                foreach (var chat in user.ChatId)
-                {
-                    var tweetText = @$"
-*{subTweet.Name}* ([@{subTweet.ScreenName}](https://twitter.com/{subTweet.ScreenName})) at {subTweet.CreatedAt}:
-{subTweet.Text}
+                var tweetText = @$"
+*{subTweet.Name}* ([@{subTweet.ScreenName}](https://twitter.com/{subTweet.ScreenName})) at {subTweet.CreatedAt:MM/dd/yyy H:mm:ss}:
+{Utils.ReplaceByRegex(subTweet.Text)}
 -- [Link to this Tweet](https://twitter.com/{subTweet.ScreenName}/status/{subTweet.TwId})
 ";
-                    if (subTweet.MediaList.Count == 0)
+                if (subTweet.MediaList.Count == 0)
+                {
+                    var t = _bot!.SendTextAsync(tweetText, chat);
+                    sendJobs.Add(t);
+                }
+                else
+                {
+                    switch (subTweet.Type)
                     {
-                        var t = _bot!.SendTextAsync(tweetText, chat);
-                        sendJobs.Add(t);
-                    }
-                    else
-                    {
-                        if (subTweet.Type == Tweet.TweetList.MediaType.Photo)
+                        case Tweet.TweetList.MediaType.Photo:
                         {
                             var t = _bot!.SendPhotoGroupAsync(subTweet.MediaList, tweetText, chat);
                             sendJobs.Add(t);
+                            break;
                         }
-                        else if (subTweet.Type == Tweet.TweetList.MediaType.Video)
+                        case Tweet.TweetList.MediaType.Video:
                         {
                             var t = _bot!.SendVideoGroupAsync(subTweet.MediaList, tweetText, chat);
                             sendJobs.Add(t);
+                            break;
                         }
+                        case Tweet.TweetList.MediaType.None:
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
                 }
-
-                _sql.UpdateLastTweet(user.Id, tweetList[0].TwId);
             }
+
+            _sql.UpdateLastTweet(user.Id, tweetList[0].TwId);
         }
 
         foreach (var sendJob in sendJobs) await sendJob;

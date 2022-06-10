@@ -32,19 +32,17 @@ CREATE TABLE IF NOT EXISTS subscription(
         _sql.Close();
     }
 
-    private List<long> SplitString2LongList(string s)
+    private static List<long> SplitString2LongList(string s)
     {
         var gets = s.Split(',');
-        List<long> outLongs = new();
-        foreach (var v in gets) outLongs.Add(long.Parse(v));
 
-        return outLongs;
+        return gets.Select(long.Parse).ToList();
     }
 
-    string LongList2String(List<long> ll)
+    private static string LongList2String(IReadOnlyList<long> ll)
     {
         var s = "";
-        for (int i = 0; i < ll.Count; i++)
+        for (var i = 0; i < ll.Count; i++)
         {
             if (i != 0)
                 s += ",";
@@ -101,7 +99,7 @@ CREATE TABLE IF NOT EXISTS subscription(
         }
     }
 
-    public async Task delSubAsync(long sub, long chatId)
+    public async Task DelSubAsync(long sub, long chatId)
     {
         var isExist = false;
         var command = _sql.CreateCommand();
@@ -118,7 +116,7 @@ CREATE TABLE IF NOT EXISTS subscription(
                 isExist = true;
             }
         }
-        
+
         if (!isExist)
             return;
 

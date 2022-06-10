@@ -24,7 +24,7 @@ public class TelegramBot
         _bot.StartReceiving(HandleUpdateAsync, HandlePollingErrorAsync, receiverOptions, _cts.Token);
     }
 
-    private Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception,
+    private static Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception,
         CancellationToken cancellationToken)
     {
         var errorMessage = exception switch
@@ -67,12 +67,11 @@ public class TelegramBot
 - /unsub - unsubscribes from users
 - /sublist - get a list of subscribed users
 - /help - view help text
-", parseMode: ParseMode.Markdown,
-                        cancellationToken: cancellationToken);
+", ParseMode.Markdown, cancellationToken: cancellationToken);
                     break;
                 case "sublist":
                     var user = await Job.GetSubListAsync();
-                    await _bot!.SendTextMessageAsync(update.Message.Chat.Id, user, parseMode: ParseMode.Markdown,
+                    await _bot!.SendTextMessageAsync(update.Message.Chat.Id, user, ParseMode.Markdown,
                         cancellationToken: cancellationToken);
                     break;
             }
@@ -93,27 +92,55 @@ public class TelegramBot
 
     public async Task SendTextAsync(string text, long id)
     {
-        await _bot!.SendTextMessageAsync(id, text, ParseMode.Markdown, cancellationToken: _cts.Token);
+        try
+        {
+            await _bot!.SendTextMessageAsync(id, text, ParseMode.Markdown, cancellationToken: _cts.Token);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            Console.WriteLine(text);
+            //tttt.ForEach(i => Console.Write("{0}\t", i));
+            //throw;
+        }
     }
 
     public async Task SendPhotoGroupAsync(List<string> mediaList, string caption, long id)
     {
-        var inputMedia = new List<IAlbumInputMedia>();
-        inputMedia.AddRange(mediaList.Select((t, i) => i == 0
-            ? new InputMediaPhoto(t) { Caption = caption, ParseMode = ParseMode.Markdown }
-            : new InputMediaPhoto(t)));
+        try
+        {
+            var inputMedia = new List<IAlbumInputMedia>();
+            inputMedia.AddRange(mediaList.Select((t, i) => i == 0
+                ? new InputMediaPhoto(t) { Caption = caption, ParseMode = ParseMode.Markdown }
+                : new InputMediaPhoto(t)));
 
-        await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
+            await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            mediaList.ForEach(i => Console.Write("{0}\t", i));
+            //throw;
+        }
     }
 
     public async Task SendVideoGroupAsync(List<string> mediaList, string caption, long id)
     {
-        var inputMedia = new List<IAlbumInputMedia>();
-        inputMedia.AddRange(mediaList.Select((t, i) => i == 0
-            ? new InputMediaVideo(t) { Caption = caption, ParseMode = ParseMode.Markdown }
-            : new InputMediaVideo(t)));
+        try
+        {
+            var inputMedia = new List<IAlbumInputMedia>();
+            inputMedia.AddRange(mediaList.Select((t, i) => i == 0
+                ? new InputMediaVideo(t) { Caption = caption, ParseMode = ParseMode.Markdown }
+                : new InputMediaVideo(t)));
 
-        await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
+            await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            mediaList.ForEach(i => Console.Write("{0}\t", i));
+            //throw;
+        }
     }
 
     /*public async Task test()
