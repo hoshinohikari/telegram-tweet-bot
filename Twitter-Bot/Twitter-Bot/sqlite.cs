@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS subscription(
             {
                 chats = reader.GetString(1);
                 subKinds = reader.GetString(4);
-                Console.WriteLine($"Hello, {chats}!");
+                //Console.WriteLine($"Hello, {chats}!");
                 isExist = true;
             }
         }
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS subscription(
                     if (await reader.IsDBNullAsync(0))
                         continue;
                     maxId = reader.GetInt32(0);
-                    Console.WriteLine($"Hello, {maxId}!");
+                    //Console.WriteLine($"Hello, {maxId}!");
                 }
             }
 
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS subscription(
             {
                 chats = reader.GetString(1);
                 subKinds = reader.GetString(4);
-                Console.WriteLine($"Hello, {chats}, {subKinds}!");
+                //Console.WriteLine($"Hello, {chats}, {subKinds}!");
                 isExist = true;
             }
         }

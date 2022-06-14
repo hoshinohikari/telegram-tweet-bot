@@ -106,12 +106,12 @@ public static class Job
         foreach (var sendJob in sendJobs) await sendJob;
     }
 
-    public static async Task<string> GetSubListAsync()
+    public static async Task<string> GetSubListAsync(long chatId)
     {
         var subListText = "sub list:";
         var subList = await _sql!.GetSubListAsync();
 
-        foreach (var user in subList)
+        foreach (var user in subList.Where(user => user.ChatId.Contains(chatId)))
         {
             subListText += "\n";
             var userList = await _tw!.GetUserListAsync(user.Id);

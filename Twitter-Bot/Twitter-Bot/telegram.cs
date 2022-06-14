@@ -70,7 +70,7 @@ public class TelegramBot
 ", ParseMode.Markdown, cancellationToken: cancellationToken);
                     break;
                 case "sublist":
-                    var user = await Job.GetSubListAsync();
+                    var user = await Job.GetSubListAsync(update.Message.Chat.Id);
                     await _bot!.SendTextMessageAsync(update.Message.Chat.Id, user, ParseMode.Markdown,
                         cancellationToken: cancellationToken);
                     break;
