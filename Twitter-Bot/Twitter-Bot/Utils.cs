@@ -9,7 +9,6 @@ public static class Utils
         var mc = Regex.Matches(s!, @"([\*_`\[])");
         for (var i = 0; i < mc.Count; i++)
             s = s!.Insert(mc[i].Index + i, @"\");
-        //Console.WriteLine("Found match at position " + mc[i].Index);
 
         return s;
     }

@@ -15,7 +15,7 @@ if (File.Exists("config.yml"))
 }
 else
 {
-    Console.WriteLine("Config file does not exist");
+    Log.ErrorLog("Config file does not exist");
     return;
 }
 
@@ -29,13 +29,14 @@ try
     if (telegramBotToken.IsEmpty() || twitterConsumerKey.IsEmpty() || twitterConsumerSecret.IsEmpty() ||
         twitterBearerToken.IsEmpty())
     {
-        Console.WriteLine("Config file error");
+        Log.ErrorLog("Token Is Empty");
         return;
     }
 }
-catch (Exception)
+catch (Exception ex)
 {
-    Console.WriteLine("Config file error");
+    Log.ErrorLog("Config file error");
+    Log.ErrorLog(ex.ToString());
     return;
 }
 
@@ -47,7 +48,7 @@ Console.CancelKeyPress += (_, e) =>
 {
     e.Cancel = true; //true: 不导致退出。false: 会导致退出
     running = false;
-    Console.WriteLine("You have Press Ctrl+C");
+    Log.InfoLog("You have Press Ctrl+C");
 };
 
 await Job.GetTweetAsync();
@@ -59,4 +60,4 @@ while (running)
     await Job.GetTweetAsync();
 }
 
-Console.WriteLine("Hello, World!");
+Log.InfoLog("Quit");

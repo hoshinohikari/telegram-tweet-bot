@@ -34,7 +34,7 @@ public class TelegramBot
             _ => exception.ToString()
         };
 
-        Console.WriteLine(errorMessage);
+        Log.ErrorLog(errorMessage);
         return Task.CompletedTask;
     }
 
@@ -48,7 +48,7 @@ public class TelegramBot
         if (update.Message!.Type != MessageType.Text)
             return;
 
-        Console.WriteLine($"Received a '{update.Message.Text}' message in chat {update.Message.Chat.Id}.");
+        Log.InfoLog($"Received a '{update.Message.Text}' message in chat {update.Message.Chat.Id}.");
 
         if (update.Message.Text!.Length <= 1 || update.Message.Text[0] != '/')
             return;
@@ -98,10 +98,8 @@ public class TelegramBot
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            Console.WriteLine(text);
-            //tttt.ForEach(i => Console.Write("{0}\t", i));
-            //throw;
+            Log.ErrorLog(e.ToString());
+            Log.ErrorLog(text);
         }
     }
 
@@ -118,9 +116,8 @@ public class TelegramBot
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            mediaList.ForEach(i => Console.Write("{0}\t", i));
-            //throw;
+            Log.ErrorLog(e.ToString());
+            mediaList.ForEach(i => Log.ErrorLog($"mediaList is {i}"));
         }
     }
 
@@ -137,9 +134,8 @@ public class TelegramBot
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            mediaList.ForEach(i => Console.Write("{0}\t", i));
-            //throw;
+            Log.ErrorLog(e.ToString());
+            mediaList.ForEach(i => Log.ErrorLog($"mediaList is {i}"));
         }
     }
 
