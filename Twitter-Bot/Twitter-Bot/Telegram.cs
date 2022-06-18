@@ -58,6 +58,7 @@ public class TelegramBot
             switch (update.Message.Text[1..])
             {
                 case "sub":
+                case "mediasub":
                 case "unsub":
                     await _bot!.SendTextMessageAsync(update.Message.Chat.Id, "No subscribed object!!!",
                         cancellationToken: cancellationToken);
@@ -82,7 +83,10 @@ public class TelegramBot
         switch (update.Message.Text[1..update.Message.Text.IndexOf(' ')])
         {
             case "sub":
-                await Job.AddSubAsync(update.Message.Text[5..], update.Message.Chat.Id);
+                await Job.AddSubAsync(update.Message.Text[5..], update.Message.Chat.Id, 0);
+                break;
+            case "mediasub":
+                await Job.AddSubAsync(update.Message.Text[5..], update.Message.Chat.Id, 1);
                 break;
             case "unsub":
                 await Job.DelSubAsync(update.Message.Text[7..], update.Message.Chat.Id);

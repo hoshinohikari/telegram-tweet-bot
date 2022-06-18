@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS subscription(
         return s;
     }
 
-    public async Task AddSubAsync(long sub, long chatId)
+    public async Task AddSubAsync(long sub, long chatId, long kind)
     {
         var isExist = false;
         var command = _sql.CreateCommand();
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS subscription(
                 }
             }
 
-            command.CommandText = @$"INSERT INTO subscription VALUES ({maxId + 1}, '{chatId}', {sub}, 0, '0', '' );";
+            command.CommandText = @$"INSERT INTO subscription VALUES ({maxId + 1}, '{chatId}', {sub}, 0, '{kind}', '' );";
             command.ExecuteNonQuery();
         }
         else
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS subscription(
             if (chatList.IndexOf(chatId) != -1)
                 return;
             command.CommandText =
-                @$"UPDATE subscription SET tg_chat_id = '{chats},{chatId}', sub_kind = '{subKinds},0' WHERE tw_user_id = {sub};";
+                @$"UPDATE subscription SET tg_chat_id = '{chats},{chatId}', sub_kind = '{subKinds},{kind}' WHERE tw_user_id = {sub};";
             command.ExecuteNonQuery();
         }
     }
@@ -146,12 +146,13 @@ CREATE TABLE IF NOT EXISTS subscription(
     {
         List<Sublist> subList = new();
         var command = _sql.CreateCommand();
-        command.CommandText = @"SELECT tw_user_id, last_tweet_id, tg_chat_id FROM subscription";
+        command.CommandText = @"SELECT tw_user_id, last_tweet_id, tg_chat_id, sub_kind FROM subscription";
         await using var reader = await command.ExecuteReaderAsync();
         while (reader.Read())
         {
             var chatid = SplitString2LongList(reader.GetString(2));
-            subList.Add(new Sublist { Id = reader.GetInt64(0), Sinceid = reader.GetInt64(1), ChatId = chatid });
+            var subkind = SplitString2LongList(reader.GetString(3));
+            subList.Add(new Sublist { Id = reader.GetInt64(0), Sinceid = reader.GetInt64(1), ChatId = chatid, SubKind = subkind});
         }
 
         return subList;
@@ -208,5 +209,6 @@ CREATE TABLE IF NOT EXISTS subscription(
         public long Id;
         public long Sinceid;
         public List<long> ChatId;
+        public List<long> SubKind;
     }
 }

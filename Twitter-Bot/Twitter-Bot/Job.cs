@@ -13,7 +13,7 @@ public static class Job
         _tw = new Tweet(consumerKey, consumerSecret, bearerToken);
     }
 
-    public static async Task AddSubAsync(string subList, long chatId)
+    public static async Task AddSubAsync(string subList, long chatId, long kind)
     {
         var subs = subList.Split(' ');
         List<Task> addJobs = new();
@@ -27,7 +27,7 @@ public static class Job
                 continue;
             }
 
-            addJobs.Add(_sql!.AddSubAsync(id, chatId));
+            addJobs.Add(_sql!.AddSubAsync(id, chatId, kind));
         }
 
         foreach (var addJob in addJobs) await addJob;
@@ -64,37 +64,42 @@ public static class Job
             var tweetList = await _tw!.GetTweetAsync(user.Id, user.Sinceid);
             if (tweetList.Count <= 0) continue;
             foreach (var subTweet in tweetList)
-            foreach (var chat in user.ChatId)
             {
-                var tweetText = @$"
+                for(var i = 0; i < user.ChatId.Count; i++)
+                {
+                    var chat = user.ChatId[i];
+                    var kind = user.SubKind[i];
+                    var tweetText = @$"
 *{subTweet.Name}* ([@{subTweet.ScreenName}](https://twitter.com/{subTweet.ScreenName})) at {subTweet.CreatedAt:MM/dd/yyy H:mm:ss}:
 {Utils.ReplaceByRegex(subTweet.Text)}
 -- [Link to this Tweet](https://twitter.com/{subTweet.ScreenName}/status/{subTweet.TwId})
 ";
-                if (subTweet.MediaList.Count == 0)
-                {
-                    var t = _bot!.SendTextAsync(tweetText, chat);
-                    sendJobs.Add(t);
-                }
-                else
-                {
-                    switch (subTweet.Type)
+                    if (subTweet.MediaList.Count == 0)
                     {
-                        case Tweet.TweetList.MediaType.None:
-                        case Tweet.TweetList.MediaType.Photo:
+                        if (kind != 0) continue;
+                        var t = _bot!.SendTextAsync(tweetText, chat);
+                        sendJobs.Add(t);
+                    }
+                    else
+                    {
+                        switch (subTweet.Type)
                         {
-                            var t = _bot!.SendPhotoGroupAsync(subTweet.MediaList, tweetText, chat);
-                            sendJobs.Add(t);
-                            break;
+                            case Tweet.TweetList.MediaType.None:
+                            case Tweet.TweetList.MediaType.Photo:
+                                {
+                                    var t = _bot!.SendPhotoGroupAsync(subTweet.MediaList, tweetText, chat);
+                                    sendJobs.Add(t);
+                                    break;
+                                }
+                            case Tweet.TweetList.MediaType.Video:
+                                {
+                                    var t = _bot!.SendVideoGroupAsync(subTweet.MediaList, tweetText, chat);
+                                    sendJobs.Add(t);
+                                    break;
+                                }
+                            default:
+                                throw new ArgumentOutOfRangeException();
                         }
-                        case Tweet.TweetList.MediaType.Video:
-                        {
-                            var t = _bot!.SendVideoGroupAsync(subTweet.MediaList, tweetText, chat);
-                            sendJobs.Add(t);
-                            break;
-                        }
-                        default:
-                            throw new ArgumentOutOfRangeException();
                     }
                 }
             }
