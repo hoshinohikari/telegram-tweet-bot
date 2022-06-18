@@ -113,14 +113,29 @@ public static class Job
     public static async Task<string> GetSubListAsync(long chatId)
     {
         var subListText = "sub list:";
+        var mediasubListText = "mediasub list:";
         var subList = await _sql!.GetSubListAsync();
-
-        foreach (var user in subList.Where(user => user.ChatId.Contains(chatId)))
+        
+        for(var i = 0; i < subList.Count; i++)
         {
-            subListText += "\n";
-            var userList = await _tw!.GetUserListAsync(user.Id);
-            subListText += $"*{userList.Name}* ([@{userList.ScreenName}](https://twitter.com/{userList.ScreenName}))";
+            if (!subList[i].ChatId.Contains(chatId)) continue;
+            if (subList[i].SubKind[subList[i].ChatId.FindIndex(l => l == chatId)] == 0)
+            {
+                subListText += "\n";
+                var userList = await _tw!.GetUserListAsync(subList[i].Id);
+                subListText += $"*{userList.Name}* ([@{userList.ScreenName}](https://twitter.com/{userList.ScreenName}))";
+            }
+            else
+            {
+                mediasubListText += "\n";
+                var userList = await _tw!.GetUserListAsync(subList[i].Id);
+                mediasubListText += $"*{userList.Name}* ([@{userList.ScreenName}](https://twitter.com/{userList.ScreenName}))";
+            }
         }
+
+        subListText += "\n";
+        subListText += "\n";
+        subListText += mediasubListText;
 
         return subListText;
     }
