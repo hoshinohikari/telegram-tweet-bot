@@ -100,14 +100,24 @@ public class TelegramBot
         {
             Log.ErrorLog(e.ToString());
             Log.ErrorLog(text);
+            await Task.Delay(1000);
+            try
+            {
+                await _bot!.SendTextMessageAsync(id, text, ParseMode.Markdown, cancellationToken: _cts.Token);
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorLog(ex.ToString());
+                Log.ErrorLog(text);
+            }
         }
     }
 
     public async Task SendPhotoGroupAsync(List<string> mediaList, string caption, long id)
     {
+        var inputMedia = new List<IAlbumInputMedia>();
         try
         {
-            var inputMedia = new List<IAlbumInputMedia>();
             inputMedia.AddRange(mediaList.Select((t, i) => i == 0
                 ? new InputMediaPhoto(t) { Caption = caption, ParseMode = ParseMode.Markdown }
                 : new InputMediaPhoto(t)));
@@ -118,14 +128,24 @@ public class TelegramBot
         {
             Log.ErrorLog(e.ToString());
             mediaList.ForEach(i => Log.ErrorLog($"mediaList is {i}"));
+            await Task.Delay(1000);
+            try
+            {
+                await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorLog(ex.ToString());
+                mediaList.ForEach(i => Log.ErrorLog($"mediaList is {i}"));
+            }
         }
     }
 
     public async Task SendVideoGroupAsync(List<string> mediaList, string caption, long id)
     {
+        var inputMedia = new List<IAlbumInputMedia>();
         try
         {
-            var inputMedia = new List<IAlbumInputMedia>();
             inputMedia.AddRange(mediaList.Select((t, i) => i == 0
                 ? new InputMediaVideo(t) { Caption = caption, ParseMode = ParseMode.Markdown }
                 : new InputMediaVideo(t)));
@@ -136,6 +156,16 @@ public class TelegramBot
         {
             Log.ErrorLog(e.ToString());
             mediaList.ForEach(i => Log.ErrorLog($"mediaList is {i}"));
+            await Task.Delay(1000);
+            try
+            {
+                await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorLog(ex.ToString());
+                mediaList.ForEach(i => Log.ErrorLog($"mediaList is {i}"));
+            }
         }
     }
 
