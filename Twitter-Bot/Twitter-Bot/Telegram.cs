@@ -65,6 +65,7 @@ public class TelegramBot
                     break;
                 case "help":
                     await _bot!.SendTextMessageAsync(update.Message.Chat.Id, @"- /sub - subscribes to updates from users
+- /mediasub - subscribes to updates from users (media only)
 - /unsub - unsubscribes from users
 - /sublist - get a list of subscribed users
 - /help - view help text
@@ -86,7 +87,7 @@ public class TelegramBot
                 await Job.AddSubAsync(update.Message.Text[5..], update.Message.Chat.Id, 0);
                 break;
             case "mediasub":
-                await Job.AddSubAsync(update.Message.Text[5..], update.Message.Chat.Id, 1);
+                await Job.AddSubAsync(update.Message.Text[10..], update.Message.Chat.Id, 1);
                 break;
             case "unsub":
                 await Job.DelSubAsync(update.Message.Text[7..], update.Message.Chat.Id);
