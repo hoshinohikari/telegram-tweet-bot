@@ -47,17 +47,73 @@ public class Tweet
             {
                 IncludeEntities = true,
                 IncludeRetweets = true,
-                PageSize = 10
+                PageSize = 1
                 //SinceId = 
             });
             var page = await userTimeline.NextPageAsync();
             timelineTweets.AddRange(page);
+            if (timelineTweets.Count <= 0) return twlist;
+
             List<string> mediaList = new();
-            foreach (var timelineMedia in timelineTweets[0].Media)
-                if (timelineMedia.MediaType == "photo")
-                    mediaList.Add(timelineMedia.MediaURLHttps);
-                else
-                    mediaList.Add(timelineMedia.MediaURLHttps);
+            if (!timelineTweets[0].IsRetweet)
+            {
+                if (timelineTweets[0].QuotedTweet != null)
+                {
+                    if (timelineTweets[0].Media.Count != 0 && timelineTweets[0].Media[0].MediaType != "photo")
+                    {
+                    }
+                    else
+                    {
+                        mediaList.AddRange(from quotedTweetMedia in timelineTweets[0].QuotedTweet.Media
+                            where quotedTweetMedia.MediaType == "photo"
+                            select quotedTweetMedia.MediaURLHttps);
+                    }
+                }
+
+                foreach (var timelineMedia in timelineTweets[0].Media)
+                    if (timelineMedia.MediaType == "photo")
+                    {
+                        mediaList.Add(timelineMedia.MediaURLHttps);
+                    }
+                    else
+                    {
+                        var videoUrl = "";
+                        var max = 0;
+                        foreach (var v in timelineMedia.VideoDetails.Variants)
+                            if (v.Bitrate > max)
+                            {
+                                max = v.Bitrate;
+                                videoUrl = v.URL;
+                            }
+
+                        mediaList.Add(videoUrl);
+                    }
+            }
+            else
+            {
+                mediaList.AddRange(from retweetedTweetMedia in timelineTweets[0].RetweetedTweet.Media
+                    where retweetedTweetMedia.MediaType == "photo"
+                    select retweetedTweetMedia.MediaURLHttps);
+                foreach (var timelineMedia in timelineTweets[0].Media)
+                    if (timelineMedia.MediaType == "photo")
+                    {
+                        if (!mediaList.Contains(timelineMedia.MediaURLHttps))
+                            mediaList.Add(timelineMedia.MediaURLHttps);
+                    }
+                    else
+                    {
+                        var videoUrl = "";
+                        var max = 0;
+                        foreach (var v in timelineMedia.VideoDetails.Variants)
+                            if (v.Bitrate > max)
+                            {
+                                max = v.Bitrate;
+                                videoUrl = v.URL;
+                            }
+
+                        mediaList.Add(videoUrl);
+                    }
+            }
 
             var tst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
             var thisTime = TimeZoneInfo.ConvertTime(timelineTweets[0].CreatedAt.DateTime, TimeZoneInfo.Utc, tst);
@@ -95,24 +151,65 @@ public class Tweet
             foreach (var timelineTweet in timelineTweets)
             {
                 List<string> mediaList = new();
-                foreach (var timelineMedia in timelineTweet.Media)
-                    if (timelineMedia.MediaType == "photo")
+                if (!timelineTweet.IsRetweet)
+                {
+                    if (timelineTweet.QuotedTweet != null)
                     {
-                        mediaList.Add(timelineMedia.MediaURLHttps);
+                        if (timelineTweet.Media.Count != 0 && timelineTweet.Media[0].MediaType != "photo")
+                        {
+                        }
+                        else
+                        {
+                            mediaList.AddRange(from quotedTweetMedia in timelineTweet.QuotedTweet.Media
+                                where quotedTweetMedia.MediaType == "photo"
+                                select quotedTweetMedia.MediaURLHttps);
+                        }
                     }
-                    else
-                    {
-                        var videoUrl = "";
-                        var max = 0;
-                        foreach (var v in timelineMedia.VideoDetails.Variants)
-                            if (v.Bitrate > max)
-                            {
-                                max = v.Bitrate;
-                                videoUrl = v.URL;
-                            }
 
-                        mediaList.Add(videoUrl);
-                    }
+                    foreach (var timelineMedia in timelineTweet.Media)
+                        if (timelineMedia.MediaType == "photo")
+                        {
+                            mediaList.Add(timelineMedia.MediaURLHttps);
+                        }
+                        else
+                        {
+                            var videoUrl = "";
+                            var max = 0;
+                            foreach (var v in timelineMedia.VideoDetails.Variants)
+                                if (v.Bitrate > max)
+                                {
+                                    max = v.Bitrate;
+                                    videoUrl = v.URL;
+                                }
+
+                            mediaList.Add(videoUrl);
+                        }
+                }
+                else
+                {
+                    mediaList.AddRange(from retweetedTweetMedia in timelineTweet.RetweetedTweet.Media
+                        where retweetedTweetMedia.MediaType == "photo"
+                        select retweetedTweetMedia.MediaURLHttps);
+                    foreach (var timelineMedia in timelineTweet.Media)
+                        if (timelineMedia.MediaType == "photo")
+                        {
+                            if (!mediaList.Contains(timelineMedia.MediaURLHttps))
+                                mediaList.Add(timelineMedia.MediaURLHttps);
+                        }
+                        else
+                        {
+                            var videoUrl = "";
+                            var max = 0;
+                            foreach (var v in timelineMedia.VideoDetails.Variants)
+                                if (v.Bitrate > max)
+                                {
+                                    max = v.Bitrate;
+                                    videoUrl = v.URL;
+                                }
+
+                            mediaList.Add(videoUrl);
+                        }
+                }
 
                 var tst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
                 var thisTime = TimeZoneInfo.ConvertTime(timelineTweet.CreatedAt.DateTime, TimeZoneInfo.Utc, tst);

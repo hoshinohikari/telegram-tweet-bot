@@ -80,6 +80,7 @@ public static class Job
                 {
                     switch (subTweet.Type)
                     {
+                        case Tweet.TweetList.MediaType.None:
                         case Tweet.TweetList.MediaType.Photo:
                         {
                             var t = _bot!.SendPhotoGroupAsync(subTweet.MediaList, tweetText, chat);
@@ -92,8 +93,6 @@ public static class Job
                             sendJobs.Add(t);
                             break;
                         }
-                        case Tweet.TweetList.MediaType.None:
-                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
