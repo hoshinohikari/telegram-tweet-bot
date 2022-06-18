@@ -23,7 +23,7 @@ public static class Job
             var id = await _tw!.GetUserId(sub);
             if (id == 0)
             {
-                addJobs.Add(_bot!.SendTextAsync($"User {sub} does not exist", chatId));
+                addJobs.Add(_bot!.SendNoModeTextAsync($"User {sub} does not exist", chatId));
                 continue;
             }
 
@@ -43,7 +43,7 @@ public static class Job
             var id = await _tw!.GetUserId(sub);
             if (id == 0)
             {
-                addJobs.Add(_bot!.SendTextAsync($"User {sub} does not exist", chatId));
+                addJobs.Add(_bot!.SendNoModeTextAsync($"User {sub} does not exist", chatId));
                 continue;
             }
 
@@ -138,5 +138,11 @@ public static class Job
         subListText += mediasubListText;
 
         return subListText;
+    }
+
+    public static async Task<int> GetSubNum()
+    {
+        var subList = await _sql!.GetSubListAsync();
+        return subList.Count;
     }
 }

@@ -118,6 +118,29 @@ public class TelegramBot
         }
     }
 
+    public async Task SendNoModeTextAsync(string text, long id)
+    {
+        try
+        {
+            await _bot!.SendTextMessageAsync(id, text, cancellationToken: _cts.Token);
+        }
+        catch (Exception e)
+        {
+            Log.ErrorLog(e.ToString());
+            Log.ErrorLog(text);
+            await Task.Delay(1000);
+            try
+            {
+                await _bot!.SendTextMessageAsync(id, text, cancellationToken: _cts.Token);
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorLog(ex.ToString());
+                Log.ErrorLog(text);
+            }
+        }
+    }
+
     public async Task SendPhotoGroupAsync(List<string> mediaList, string caption, long id)
     {
         var inputMedia = new List<IAlbumInputMedia>();

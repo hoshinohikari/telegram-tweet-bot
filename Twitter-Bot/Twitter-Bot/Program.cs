@@ -55,7 +55,19 @@ await Job.GetTweetAsync();
 
 while (running)
 {
-    await Task.Delay(60000);
+    var subNum = await Job.GetSubNum();
+    switch (subNum)
+    {
+        case < 30:
+            await Task.Delay(30000);
+            break;
+        case > 900:
+            await Task.Delay(900000);
+            break;
+        default:
+            await Task.Delay(subNum * 1000);
+            break;
+    }
 
     await Job.GetTweetAsync();
 }
