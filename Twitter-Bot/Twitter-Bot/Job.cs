@@ -64,8 +64,7 @@ public static class Job
             var tweetList = await _tw!.GetTweetAsync(user.Id, user.Sinceid);
             if (tweetList.Count <= 0) continue;
             foreach (var subTweet in tweetList)
-            {
-                for(var i = 0; i < user.ChatId.Count; i++)
+                for (var i = 0; i < user.ChatId.Count; i++)
                 {
                     var chat = user.ChatId[i];
                     var kind = user.SubKind[i];
@@ -86,23 +85,22 @@ public static class Job
                         {
                             case Tweet.TweetList.MediaType.None:
                             case Tweet.TweetList.MediaType.Photo:
-                                {
-                                    var t = _bot!.SendPhotoGroupAsync(subTweet.MediaList, tweetText, chat);
-                                    sendJobs.Add(t);
-                                    break;
-                                }
+                            {
+                                var t = _bot!.SendPhotoGroupAsync(subTweet.MediaList, tweetText, chat);
+                                sendJobs.Add(t);
+                                break;
+                            }
                             case Tweet.TweetList.MediaType.Video:
-                                {
-                                    var t = _bot!.SendVideoGroupAsync(subTweet.MediaList, tweetText, chat);
-                                    sendJobs.Add(t);
-                                    break;
-                                }
+                            {
+                                var t = _bot!.SendVideoGroupAsync(subTweet.MediaList, tweetText, chat);
+                                sendJobs.Add(t);
+                                break;
+                            }
                             default:
                                 throw new ArgumentOutOfRangeException();
                         }
                     }
                 }
-            }
 
             _sql.UpdateLastTweet(user.Id, tweetList[0].TwId);
         }
@@ -115,21 +113,23 @@ public static class Job
         var subListText = "sub list:";
         var mediasubListText = "mediasub list:";
         var subList = await _sql!.GetSubListAsync();
-        
-        for(var i = 0; i < subList.Count; i++)
+
+        for (var i = 0; i < subList.Count; i++)
         {
             if (!subList[i].ChatId.Contains(chatId)) continue;
             if (subList[i].SubKind[subList[i].ChatId.FindIndex(l => l == chatId)] == 0)
             {
                 subListText += "\n";
                 var userList = await _tw!.GetUserListAsync(subList[i].Id);
-                subListText += $"*{userList.Name}* ([@{userList.ScreenName}](https://twitter.com/{userList.ScreenName}))";
+                subListText +=
+                    $"*{userList.Name}* ([@{userList.ScreenName}](https://twitter.com/{userList.ScreenName}))";
             }
             else
             {
                 mediasubListText += "\n";
                 var userList = await _tw!.GetUserListAsync(subList[i].Id);
-                mediasubListText += $"*{userList.Name}* ([@{userList.ScreenName}](https://twitter.com/{userList.ScreenName}))";
+                mediasubListText +=
+                    $"*{userList.Name}* ([@{userList.ScreenName}](https://twitter.com/{userList.ScreenName}))";
             }
         }
 

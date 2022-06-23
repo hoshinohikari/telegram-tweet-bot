@@ -43,16 +43,42 @@ public class Tweet
             name = user.Name;
             screenName = user.ScreenName;
 
-            var userTimeline = _app.Timelines.GetUserTimelineIterator(new GetUserTimelineParameters(id)
+            try
             {
-                IncludeEntities = true,
-                IncludeRetweets = true,
-                PageSize = 1
-                //SinceId = 
-            });
-            var page = await userTimeline.NextPageAsync();
-            timelineTweets.AddRange(page);
-            if (timelineTweets.Count <= 0) return twlist;
+                timelineTweets.Clear();
+                var userTimeline = _app.Timelines.GetUserTimelineIterator(new GetUserTimelineParameters(id)
+                {
+                    IncludeEntities = true,
+                    IncludeRetweets = true,
+                    PageSize = 1
+                    //SinceId = 
+                });
+                var page = await userTimeline.NextPageAsync();
+                timelineTweets.AddRange(page);
+                if (timelineTweets.Count <= 0) return twlist;
+            }
+            catch (Exception e)
+            {
+                Log.ErrorLog(e.ToString());
+                try
+                {
+                    timelineTweets.Clear();
+                    var userTimeline = _app.Timelines.GetUserTimelineIterator(new GetUserTimelineParameters(id)
+                    {
+                        IncludeEntities = true,
+                        IncludeRetweets = true,
+                        PageSize = 1
+                        //SinceId = 
+                    });
+                    var page = await userTimeline.NextPageAsync();
+                    timelineTweets.AddRange(page);
+                    if (timelineTweets.Count <= 0) return twlist;
+                }
+                catch (Exception ex)
+                {
+                    Log.ErrorLog(ex.ToString());
+                }
+            }
 
             List<string> mediaList = new();
             if (!timelineTweets[0].IsRetweet)

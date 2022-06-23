@@ -85,7 +85,8 @@ CREATE TABLE IF NOT EXISTS subscription(
                 }
             }
 
-            command.CommandText = @$"INSERT INTO subscription VALUES ({maxId + 1}, '{chatId}', {sub}, 0, '{kind}', '' );";
+            command.CommandText =
+                @$"INSERT INTO subscription VALUES ({maxId + 1}, '{chatId}', {sub}, 0, '{kind}', '' );";
             command.ExecuteNonQuery();
         }
         else
@@ -152,7 +153,8 @@ CREATE TABLE IF NOT EXISTS subscription(
         {
             var chatid = SplitString2LongList(reader.GetString(2));
             var subkind = SplitString2LongList(reader.GetString(3));
-            subList.Add(new Sublist { Id = reader.GetInt64(0), Sinceid = reader.GetInt64(1), ChatId = chatid, SubKind = subkind});
+            subList.Add(new Sublist
+                { Id = reader.GetInt64(0), Sinceid = reader.GetInt64(1), ChatId = chatid, SubKind = subkind });
         }
 
         return subList;
