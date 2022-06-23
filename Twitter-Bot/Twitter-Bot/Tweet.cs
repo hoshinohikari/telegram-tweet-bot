@@ -60,6 +60,7 @@ public class Tweet
             catch (Exception e)
             {
                 Log.ErrorLog(e.ToString());
+                await Task.Delay(1000);
                 try
                 {
                     timelineTweets.Clear();
@@ -158,16 +159,44 @@ public class Tweet
         }
         else
         {
-            var userTimeline = _app.Timelines.GetUserTimelineIterator(new GetUserTimelineParameters(id)
+            try
             {
-                IncludeEntities = true,
-                IncludeRetweets = true,
-                SinceId = sinceid
-            });
-            while (!userTimeline.Completed)
+                timelineTweets.Clear();
+                var userTimeline = _app.Timelines.GetUserTimelineIterator(new GetUserTimelineParameters(id)
+                {
+                    IncludeEntities = true,
+                    IncludeRetweets = true,
+                    SinceId = sinceid
+                });
+                while (!userTimeline.Completed)
+                {
+                    var page = await userTimeline.NextPageAsync();
+                    timelineTweets.AddRange(page);
+                }
+            }
+            catch (Exception e)
             {
-                var page = await userTimeline.NextPageAsync();
-                timelineTweets.AddRange(page);
+                Log.ErrorLog(e.ToString());
+                await Task.Delay(1000);
+                try
+                {
+                    timelineTweets.Clear();
+                    var userTimeline = _app.Timelines.GetUserTimelineIterator(new GetUserTimelineParameters(id)
+                    {
+                        IncludeEntities = true,
+                        IncludeRetweets = true,
+                        SinceId = sinceid
+                    });
+                    while (!userTimeline.Completed)
+                    {
+                        var page = await userTimeline.NextPageAsync();
+                        timelineTweets.AddRange(page);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.ErrorLog(ex.ToString());
+                }
             }
 
             if (timelineTweets.Count <= 0) return twlist;
