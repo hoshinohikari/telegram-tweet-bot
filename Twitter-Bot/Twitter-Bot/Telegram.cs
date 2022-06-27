@@ -197,40 +197,51 @@ public class TelegramBot
         }
     }
 
-    /*public async Task test()
+    public async Task SendMediaGroupAsync(List<Tweet.Media> mediaList, string caption, long id)
     {
-        var botClient = new TelegramBotClient(token);
+        var inputMedia = new List<IAlbumInputMedia>();
 
-        using var cts = new CancellationTokenSource();
-
-        // StartReceiving does not block the caller thread. Receiving is done on the ThreadPool.
-        var receiverOptions = new ReceiverOptions
+        try
         {
-            AllowedUpdates = Array.Empty<UpdateType>() // receive all update types
-        };
+            for (var i = 0; i < mediaList.Count; i++)
+                switch (mediaList[i].Type)
+                {
+                    case Tweet.Media.MediaType.Photo:
+                    {
+                        inputMedia.Add(i == 0
+                            ? new InputMediaPhoto(mediaList[i].Url)
+                                { Caption = caption, ParseMode = ParseMode.Markdown }
+                            : new InputMediaPhoto(mediaList[i].Url));
+                        break;
+                    }
+                    case Tweet.Media.MediaType.Video:
+                    {
+                        inputMedia.Add(i == 0
+                            ? new InputMediaVideo(mediaList[i].Url)
+                                { Caption = caption, ParseMode = ParseMode.Markdown }
+                            : new InputMediaVideo(mediaList[i].Url));
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
 
-        botClient.StartReceiving(
-            updateHandler: HandleUpdateAsync,
-            errorHandler: HandlePollingErrorAsync,
-            receiverOptions: receiverOptions,
-            cancellationToken: cts.Token
-        );
-
-        var me = await botClient.GetMeAsync();
-        Console.WriteLine($"Hello, World! I am user {me.Id} and my name is {me.FirstName}.");
-
-        / *bool running = true;
-
-        Console.CancelKeyPress += (sender, e) =>
+            await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
+        }
+        catch (Exception e)
         {
-            e.Cancel = true; //true: 不导致退出。false: 会导致退出
-            running = false;
-            Console.WriteLine("You have Press Ctrl+C");
-        };
-
-        while (running)
-        {
-            await Task.Delay(10, cts.Token);
-        }* /
-    }*/
+            Log.ErrorLog(e.ToString());
+            mediaList.ForEach(i => Log.ErrorLog($"mediaList is {i}"));
+            await Task.Delay(1000);
+            try
+            {
+                await _bot!.SendMediaGroupAsync(id, inputMedia, cancellationToken: _cts.Token);
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorLog(ex.ToString());
+                mediaList.ForEach(i => Log.ErrorLog($"mediaList is {i}"));
+            }
+        }
+    }
 }

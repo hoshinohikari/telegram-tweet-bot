@@ -65,7 +65,6 @@ CREATE TABLE IF NOT EXISTS subscription(
             {
                 chats = reader.GetString(1);
                 subKinds = reader.GetString(4);
-                //Console.WriteLine($"Hello, {chats}!");
                 isExist = true;
             }
         }
@@ -81,7 +80,6 @@ CREATE TABLE IF NOT EXISTS subscription(
                     if (await reader.IsDBNullAsync(0))
                         continue;
                     maxId = reader.GetInt32(0);
-                    //Console.WriteLine($"Hello, {maxId}!");
                 }
             }
 
@@ -113,7 +111,6 @@ CREATE TABLE IF NOT EXISTS subscription(
             {
                 chats = reader.GetString(1);
                 subKinds = reader.GetString(4);
-                //Console.WriteLine($"Hello, {chats}, {subKinds}!");
                 isExist = true;
             }
         }
@@ -167,44 +164,6 @@ CREATE TABLE IF NOT EXISTS subscription(
             @$"UPDATE subscription SET last_tweet_id = {lastTweetId} WHERE tw_user_id = {twUserId}";
         command.ExecuteNonQuery();
     }
-
-    /*public void test()
-    {
-        string? id = null;
-
-        using (var connection = new SqliteConnection("Data Source=hello.db;Cache=Shared"))
-        {
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            / *            command.CommandText =
-                            @"
-            CREATE TABLE IF NOT EXISTS COMPANY(
-                ID INT PRIMARY KEY     NOT NULL,
-                NAME           TEXT    NOT NULL,
-                AGE            INT     NOT NULL,
-                ADDRESS        CHAR(50),
-                SALARY         REAL
-            );
-            INSERT INTO COMPANY (ID, NAME, AGE, ADDRESS, SALARY)
-                SELECT 1, 'Paul', 32, 'California', 20000.00
-                    WHERE NOT EXISTS (SELECT * FROM COMPANY WHERE ID = 1 AND NAME = 'Paul');
-            SELECT * FROM COMPANY;
-                ";* /
-            command.CommandText = @"SELECT * FROM COMPANY;";
-            command.Parameters.AddWithValue("$id", id);
-
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    var name = reader.GetString(1);
-
-                    Console.WriteLine($"Hello, {name}!");
-                }
-            }
-        }
-    }*/
 
     public struct Sublist
     {

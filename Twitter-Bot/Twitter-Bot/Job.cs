@@ -81,24 +81,8 @@ public static class Job
                     }
                     else
                     {
-                        switch (subTweet.Type)
-                        {
-                            case Tweet.TweetList.MediaType.None:
-                            case Tweet.TweetList.MediaType.Photo:
-                            {
-                                var t = _bot!.SendPhotoGroupAsync(subTweet.MediaList, tweetText, chat);
-                                sendJobs.Add(t);
-                                break;
-                            }
-                            case Tweet.TweetList.MediaType.Video:
-                            {
-                                var t = _bot!.SendVideoGroupAsync(subTweet.MediaList, tweetText, chat);
-                                sendJobs.Add(t);
-                                break;
-                            }
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
+                        var t = _bot!.SendMediaGroupAsync(subTweet.MediaList, tweetText, chat);
+                        sendJobs.Add(t);
                     }
                 }
 

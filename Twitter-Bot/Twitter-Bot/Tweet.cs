@@ -1,6 +1,8 @@
 ﻿using Tweetinvi;
+using Tweetinvi.Core.Extensions;
 using Tweetinvi.Exceptions;
 using Tweetinvi.Models;
+using Tweetinvi.Models.Entities;
 using Tweetinvi.Parameters;
 
 namespace Twitter_Bot;
@@ -35,14 +37,8 @@ public class Tweet
     {
         List<TweetList> twlist = new();
         var timelineTweets = new List<ITweet>();
-        string name;
-        string screenName;
-        if (sinceid == 0)
-        {
-            var user = await _app.Users.GetUserAsync(id);
-            name = user.Name;
-            screenName = user.ScreenName;
 
+        if (sinceid == 0)
             try
             {
                 timelineTweets.Clear();
@@ -55,7 +51,6 @@ public class Tweet
                 });
                 var page = await userTimeline.NextPageAsync();
                 timelineTweets.AddRange(page);
-                if (timelineTweets.Count <= 0) return twlist;
             }
             catch (Exception e)
             {
@@ -73,92 +68,13 @@ public class Tweet
                     });
                     var page = await userTimeline.NextPageAsync();
                     timelineTweets.AddRange(page);
-                    if (timelineTweets.Count <= 0) return twlist;
                 }
                 catch (Exception ex)
                 {
                     Log.ErrorLog(ex.ToString());
                 }
             }
-
-            List<string> mediaList = new();
-            if (!timelineTweets[0].IsRetweet)
-            {
-                if (timelineTweets[0].QuotedTweet != null)
-                {
-                    if (timelineTweets[0].Media.Count != 0 && timelineTweets[0].Media[0].MediaType != "photo")
-                    {
-                    }
-                    else
-                    {
-                        mediaList.AddRange(from quotedTweetMedia in timelineTweets[0].QuotedTweet.Media
-                            where quotedTweetMedia.MediaType == "photo"
-                            select quotedTweetMedia.MediaURLHttps);
-                    }
-                }
-
-                foreach (var timelineMedia in timelineTweets[0].Media)
-                    if (timelineMedia.MediaType == "photo")
-                    {
-                        mediaList.Add(timelineMedia.MediaURLHttps);
-                    }
-                    else
-                    {
-                        var videoUrl = "";
-                        var max = 0;
-                        foreach (var v in timelineMedia.VideoDetails.Variants)
-                            if (v.Bitrate > max)
-                            {
-                                max = v.Bitrate;
-                                videoUrl = v.URL;
-                            }
-
-                        mediaList.Add(videoUrl);
-                    }
-            }
-            else
-            {
-                mediaList.AddRange(from retweetedTweetMedia in timelineTweets[0].RetweetedTweet.Media
-                    where retweetedTweetMedia.MediaType == "photo"
-                    select retweetedTweetMedia.MediaURLHttps);
-                foreach (var timelineMedia in timelineTweets[0].Media)
-                    if (timelineMedia.MediaType == "photo")
-                    {
-                        if (!mediaList.Contains(timelineMedia.MediaURLHttps))
-                            mediaList.Add(timelineMedia.MediaURLHttps);
-                    }
-                    else
-                    {
-                        var videoUrl = "";
-                        var max = 0;
-                        foreach (var v in timelineMedia.VideoDetails.Variants)
-                            if (v.Bitrate > max)
-                            {
-                                max = v.Bitrate;
-                                videoUrl = v.URL;
-                            }
-
-                        mediaList.Add(videoUrl);
-                    }
-            }
-
-            var tst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
-            var thisTime = TimeZoneInfo.ConvertTime(timelineTweets[0].CreatedAt.DateTime, TimeZoneInfo.Utc, tst);
-            twlist.Add(new TweetList
-            {
-                Name = name,
-                ScreenName = screenName,
-                CreatedAt = thisTime,
-                Text = timelineTweets[0].FullText,
-                TwId = timelineTweets[0].Id,
-                MediaList = mediaList,
-                Type = timelineTweets[0].Media.Count == 0 ? TweetList.MediaType.None :
-                    timelineTweets[0].Media[0].MediaType == "photo" ? TweetList.MediaType.Photo :
-                    TweetList.MediaType.Video
-            });
-        }
         else
-        {
             try
             {
                 timelineTweets.Clear();
@@ -199,88 +115,47 @@ public class Tweet
                 }
             }
 
-            if (timelineTweets.Count <= 0) return twlist;
-            var user = await _app.Users.GetUserAsync(id);
-            name = user.Name;
-            screenName = user.ScreenName;
-            foreach (var timelineTweet in timelineTweets)
+        if (timelineTweets.Count <= 0) return twlist;
+
+        var user = await _app.Users.GetUserAsync(id);
+        var name = user.Name;
+        var screenName = user.ScreenName;
+
+        foreach (var timelineTweet in timelineTweets)
+        {
+            List<Media> mediaList = new();
+
+            if (timelineTweet.IsRetweet)
             {
-                List<string> mediaList = new();
-                if (!timelineTweet.IsRetweet)
-                {
-                    if (timelineTweet.QuotedTweet != null)
-                    {
-                        if (timelineTweet.Media.Count != 0 && timelineTweet.Media[0].MediaType != "photo")
-                        {
-                        }
-                        else
-                        {
-                            mediaList.AddRange(from quotedTweetMedia in timelineTweet.QuotedTweet.Media
-                                where quotedTweetMedia.MediaType == "photo"
-                                select quotedTweetMedia.MediaURLHttps);
-                        }
-                    }
+                if (timelineTweet.RetweetedTweet.QuotedTweet != null)
+                    foreach (var media in timelineTweet.RetweetedTweet.QuotedTweet.Media.Select(TweetMedia2BotMedia)
+                                 .Where(media => !mediaList.Contains(media) && !media.Url.IsEmpty()))
+                        mediaList.Add(media);
 
-                    foreach (var timelineMedia in timelineTweet.Media)
-                        if (timelineMedia.MediaType == "photo")
-                        {
-                            mediaList.Add(timelineMedia.MediaURLHttps);
-                        }
-                        else
-                        {
-                            var videoUrl = "";
-                            var max = 0;
-                            foreach (var v in timelineMedia.VideoDetails.Variants)
-                                if (v.Bitrate > max)
-                                {
-                                    max = v.Bitrate;
-                                    videoUrl = v.URL;
-                                }
-
-                            mediaList.Add(videoUrl);
-                        }
-                }
-                else
-                {
-                    mediaList.AddRange(from retweetedTweetMedia in timelineTweet.RetweetedTweet.Media
-                        where retweetedTweetMedia.MediaType == "photo"
-                        select retweetedTweetMedia.MediaURLHttps);
-                    foreach (var timelineMedia in timelineTweet.Media)
-                        if (timelineMedia.MediaType == "photo")
-                        {
-                            if (!mediaList.Contains(timelineMedia.MediaURLHttps))
-                                mediaList.Add(timelineMedia.MediaURLHttps);
-                        }
-                        else
-                        {
-                            var videoUrl = "";
-                            var max = 0;
-                            foreach (var v in timelineMedia.VideoDetails.Variants)
-                                if (v.Bitrate > max)
-                                {
-                                    max = v.Bitrate;
-                                    videoUrl = v.URL;
-                                }
-
-                            mediaList.Add(videoUrl);
-                        }
-                }
-
-                var tst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
-                var thisTime = TimeZoneInfo.ConvertTime(timelineTweet.CreatedAt.DateTime, TimeZoneInfo.Utc, tst);
-                twlist.Add(new TweetList
-                {
-                    Name = name,
-                    ScreenName = screenName,
-                    CreatedAt = thisTime,
-                    Text = timelineTweet.FullText,
-                    TwId = timelineTweet.Id,
-                    MediaList = mediaList,
-                    Type = timelineTweet.Media.Count == 0 ? TweetList.MediaType.None :
-                        timelineTweet.Media[0].MediaType == "photo" ? TweetList.MediaType.Photo :
-                        TweetList.MediaType.Video
-                });
+                foreach (var media in timelineTweet.RetweetedTweet.Media.Select(TweetMedia2BotMedia)
+                             .Where(media => !mediaList.Contains(media) && !media.Url.IsEmpty())) mediaList.Add(media);
             }
+
+            if (timelineTweet.QuotedTweet != null)
+                foreach (var media in timelineTweet.QuotedTweet.Media.Select(TweetMedia2BotMedia)
+                             .Where(media => !mediaList.Contains(media) && !media.Url.IsEmpty()))
+                    mediaList.Add(media);
+
+            foreach (var media in timelineTweet.Media.Select(TweetMedia2BotMedia)
+                         .Where(media => !mediaList.Contains(media) && !media.Url.IsEmpty())) mediaList.Add(media);
+
+            var tst = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+            var thisTime = TimeZoneInfo.ConvertTime(timelineTweet.CreatedAt.DateTime, TimeZoneInfo.Utc, tst);
+
+            twlist.Add(new TweetList
+            {
+                Name = name,
+                ScreenName = screenName,
+                CreatedAt = thisTime,
+                Text = timelineTweet.FullText,
+                TwId = timelineTweet.Id,
+                MediaList = mediaList
+            });
         }
 
         return twlist;
@@ -297,26 +172,60 @@ public class Tweet
         return userList;
     }
 
-    public struct TweetList
+    private static Media TweetMedia2BotMedia(IMediaEntity tweetMedia)
+    {
+        var media = new Media();
+        switch (tweetMedia.MediaType)
+        {
+            case "photo":
+            {
+                media.Url = tweetMedia.MediaURLHttps;
+                media.Type = Media.MediaType.Photo;
+                break;
+            }
+            case "video":
+            {
+                var max = 0;
+                foreach (var v in tweetMedia.VideoDetails.Variants)
+                    if (v.Bitrate > max)
+                    {
+                        max = v.Bitrate;
+                        media.Url = v.URL;
+                    }
+
+                media.Type = Media.MediaType.Video;
+                break;
+            }
+            default:
+            {
+                Log.WarnLog($"unknown media type {tweetMedia.MediaType}, url is {tweetMedia.MediaURLHttps}");
+                break;
+            }
+        }
+
+        return media;
+    }
+
+    public struct Media
     {
         public enum MediaType
         {
-            None,
             Photo,
             Video
         }
 
-        public string? Name = null;
-        public string? ScreenName = null;
-        public DateTime CreatedAt = default;
-        public string? Text = null;
-        public long? TwId = 0;
-        public List<string> MediaList = new();
-        public MediaType Type = MediaType.Photo;
+        public string Url;
+        public MediaType Type;
+    }
 
-        public TweetList()
-        {
-        }
+    public struct TweetList
+    {
+        public string? Name;
+        public string? ScreenName;
+        public DateTime CreatedAt;
+        public string? Text;
+        public long? TwId;
+        public List<Media> MediaList;
     }
 
     public struct UserList
@@ -324,39 +233,4 @@ public class Tweet
         public string Name;
         public string ScreenName;
     }
-
-    /*public async Task test()
-    {
-        // create a consumer only credentials
-        var appCredentials = new TwitterCredentials(consumerKey,
-            consumerSecret,
-            bearerToken);
-
-        var appClient = new TwitterClient(appCredentials);
-
-        var timelineTweets = new List<ITweet>();
-
-        //appClient.Timelines.GetUserTimelineAsync("hoshicolle_info");
-        var userTimeline = appClient.Timelines.GetUserTimelineIterator(new GetUserTimelineParameters("hoshicolle_info")
-        {
-            //ContinueMinMaxCursor = 
-            //CustomQueryParameters = {  },
-            //ExcludeReplies = true,
-            //IncludeContributorDetails = true,
-            IncludeEntities = true,
-            IncludeRetweets = true,
-            //MaxId = 1,
-            //PageSize = 9
-            SinceId = 1523679305133596672
-            //TrimUser = 
-            //TweetMode = 
-            //User = 
-        });
-
-        while (!userTimeline.Completed)
-        {
-            var page = await userTimeline.NextPageAsync();
-            timelineTweets.AddRange(page);
-        }
-    }*/
 }
