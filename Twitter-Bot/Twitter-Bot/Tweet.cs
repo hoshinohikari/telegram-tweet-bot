@@ -183,11 +183,12 @@ public class Tweet
                 media.Type = Media.MediaType.Photo;
                 break;
             }
+            case "animated_gif":
             case "video":
             {
                 var max = 0;
                 foreach (var v in tweetMedia.VideoDetails.Variants)
-                    if (v.Bitrate > max)
+                    if (v.Bitrate >= max)
                     {
                         max = v.Bitrate;
                         media.Url = v.URL;
